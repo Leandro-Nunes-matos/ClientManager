@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GerenciadorClientes — Sistema de Gestão</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    /* ═══════════════════════════════════════════════
+       TOKENS DE DESIGN — PALETA SOFT & CONTEMPORÂNEA
+    ═══════════════════════════════════════════════ */
+    :root {
+      --sand-50:   #FAFAF8;
+      --sand-100:  #F5F4F0;
+      --sand-200:  #ECEAE3;
+      --sand-300:  #D9D6CB;
+      --sand-400:  #B8B4A6;
+      --sand-500:  #8F8B7E;
+      --sand-600:  #6B6760;
+      --sand-700:  #4A4742;
+      --sand-800:  #2E2C29;
+      --sand-900:  #1A1917;
+
+      --sage-50:   #F3F7F4;
+      --sage-200:  #C2D4C6;
+      --sage-400:  #7EA889;
+      --sage-600:  #4A7A58;
+      --sage-700:  #345A40;
+
+      --clay-50:   #FBF5F0;
+      --clay-200:  #EECFBA;
+      --clay-500:  #C27A52;
+      --clay-700:  #8A4A27;
+
+      --sky-50:    #F0F5FB;
+      --sky-200:   #BBCFE8;
+      --sky-600:   #3A6EA8;
+
+      --danger-50: #FDF2F2;
+      --danger-200:#F0C0C0;
+      --danger-600:#C0392B;
+
+      /* SEMÂNTICOS */
+      --bg:        var(--sand-50);
+      --surface:   #FFFFFF;
+      --surface-2: var(--sand-100);
+      --border:    var(--sand-200);
+      --border-med:var(--sand-300);
+      --text-h:    var(--sand-900);
+      --text-body: var(--sand-700);
+      --text-muted:var(--sand-500);
+      --text-hint: var(--sand-400);
+      --accent:    var(--sage-600);
+      --accent-lt: var(--sage-50);
+      --accent-md: var(--sage-200);
+
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 16px;
+      --radius-xl: 24px;
+
+      --shadow-xs: 0 1px 3px rgba(30,28,24,.06);
+      --shadow-sm: 0 2px 8px rgba(30,28,24,.08);
+      --shadow-md: 0 4px 20px rgba(30,28,24,.10);
+
+      --font-sans: 'DM Sans', system-ui, sans-serif;
+      --font-serif:'DM Serif Display', Georgia, serif;
+
+      --transition: 180ms cubic-bezier(.4,0,.2,1);
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESET
+    ═══════════════════════════════════════════════ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; font-size: 16px; }
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg);
+      color: var(--text-body);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      line-height: 1.6;
+    }
+    button { font-family: inherit; cursor: pointer; }
+    input, select, textarea { font-family: inherit; }
+    a { text-decoration: none; color: inherit; }
+
+    /* ═══════════════════════════════════════════════
+       BARRA DE NAVEGAÇÃO
+    ═══════════════════════════════════════════════ */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      height: 60px;
+      background: rgba(250,250,248,.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 2rem;
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .brand-mark {
+      width: 32px; height: 32px;
+      background: var(--accent);
+      border-radius: var(--radius-sm);
+      display: grid;
+      place-items: center;
+    }
+    .brand-mark svg { stroke: #fff; }
+    .brand-name {
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      color: var(--text-h);
+      letter-spacing: -.01em;
+    }
+    .brand-name span { color: var(--accent); }
+    .navbar-meta {
+      font-size: .78rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .db-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .35rem;
+      background: var(--accent-lt);
+      border: 1px solid var(--accent-md);
+      color: var(--accent);
+      font-size: .72rem;
+      font-weight: 500;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+    }
+    .db-pill-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+    }
+
+    /* ═══════════════════════════════════════════════
+       LAYOUT PRINCIPAL
+    ═══════════════════════════════════════════════ */
+    .layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      min-height: calc(100vh - 60px);
+    }
+
+    /* ═══════════════════════════════════════════════
+       SIDEBAR
+    ═══════════════════════════════════════════════ */
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 1.75rem 0;
+      background: var(--surface);
+      position: sticky;
+      top: 60px;
+      height: calc(100vh - 60px);
+      overflow-y: auto;
+    }
+    .sidebar-section {
+      padding: 0 1rem 1.5rem;
+    }
+    .sidebar-label {
+      font-size: .68rem;
+      font-weight: 600;
+      color: var(--text-hint);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      padding: 0 .75rem;
+      margin-bottom: .5rem;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .55rem .75rem;
+      border-radius: var(--radius-md);
+      font-size: .875rem;
+      font-weight: 400;
+      color: var(--text-body);
+      cursor: pointer;
+      transition: background var(--transition), color var(--transition);
+      border: none;
+      background: none;
+      width: 100%;
+      text-align: left;
+    }
+    .nav-item svg { flex-shrink: 0; opacity: .6; transition: opacity var(--transition); }
+    .nav-item:hover { background: var(--surface-2); color: var(--text-h); }
+    .nav-item:hover svg { opacity: 1; }
+    .nav-item.active {
+      background: var(--accent-lt);
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .nav-item.active svg { opacity: 1; stroke: var(--accent); }
+    .sidebar-divider {
+      height: 1px;
+      background: var(--border);
+      margin: .75rem 1rem;
+    }
+    .sidebar-info {
+      padding: 1rem 1.75rem;
+    }
+    .db-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: .85rem 1rem;
+    }
+    .db-card-title {
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: .5rem;
+    }
+    .db-card-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: .8rem;
+      color: var(--text-body);
+      padding: .15rem 0;
+    }
+    .db-card-row span:last-child { color: var(--text-muted); font-size: .76rem; }
+
+    /* ═══════════════════════════════════════════════
+       CONTEÚDO PRINCIPAL
+    ═══════════════════════════════════════════════ */
+    .main {
+      padding: 2rem 2.5rem;
+      max-width: 920px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PÁGINA / VIEW
+    ═══════════════════════════════════════════════ */
+    .view { display: none; animation: fade-up .3s ease both; }
+    .view.active { display: block; }
+    @keyframes fade-up {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       PAGE HEADER
+    ═══════════════════════════════════════════════ */
+    .page-header {
+      margin-bottom: 2rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .page-eyebrow {
+      font-size: .75rem;
+      font-weight: 500;
+      color: var(--accent);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: .4rem;
+    }
+    .page-title {
+      font-family: var(--font-serif);
+      font-size: 1.75rem;
+      color: var(--text-h);
+      line-height: 1.2;
+      font-weight: 400;
+    }
+    .page-desc {
+      font-size: .875rem;
+      color: var(--text-muted);
+      margin-top: .4rem;
+      max-width: 480px;
+    }
+
+    /* ═══════════════════════════════════════════════
+       FORMULÁRIOS
+    ═══════════════════════════════════════════════ */
+    .form-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      box-shadow: var(--shadow-xs);
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+    .form-grid .full { grid-column: 1 / -1; }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+    }
+    .field-label {
+      font-size: .8rem;
+      font-weight: 500;
+      color: var(--text-body);
+    }
+    .field-required::after {
+      content: ' *';
+      color: var(--clay-500);
+      font-size: .75rem;
+    }
+    .field-hint {
+      font-size: .72rem;
+      color: var(--text-hint);
+      margin-top: .15rem;
+    }
+    .input,
+    .select,
+    .textarea {
+      width: 100%;
+      padding: .625rem .875rem;
+      background: var(--surface-2);
+      border: 1px solid var(--border-med);
+      border-radius: var(--radius-md);
+      font-size: .875rem;
+      color: var(--text-h);
+      transition: border-color var(--transition), box-shadow var(--transition), background var(--transition);
+      outline: none;
+      appearance: none;
+    }
+    .input::placeholder { color: var(--text-hint); }
+    .input:hover, .select:hover, .textarea:hover {
+      border-color: var(--sand-400);
+      background: var(--surface);
+    }
+    .input:focus, .select:focus, .textarea:focus {
+      border-color: var(--accent);
+      background: var(--surface);
+      box-shadow: 0 0 0 3px rgba(74,122,88,.12);
+    }
+    .select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%238F8B7E' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right .75rem center;
+      padding-right: 2.5rem;
+      cursor: pointer;
+    }
+    .textarea { resize: vertical; min-height: 80px; }
+
+    /* INPUT COM ÍCONE */
+    .input-icon-wrap {
+      position: relative;
+    }
+    .input-icon-wrap .input { padding-left: 2.4rem; }
+    .input-icon-wrap .icon-left {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      stroke: var(--text-hint);
+      pointer-events: none;
+      transition: stroke var(--transition);
+    }
+    .input-icon-wrap:focus-within .icon-left { stroke: var(--accent); }
+
+    /* GRUPO DE RADIO/CHECKBOX (sexo, estado civil) */
+    .radio-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+    .radio-chip {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      padding: .4rem .875rem;
+      border: 1px solid var(--border-med);
+      border-radius: 20px;
+      font-size: .82rem;
+      color: var(--text-body);
+      cursor: pointer;
+      transition: all var(--transition);
+      user-select: none;
+    }
+    .radio-chip input { display: none; }
+    .radio-chip:hover { border-color: var(--accent-md); background: var(--accent-lt); color: var(--accent); }
+    .radio-chip input:checked + span {
+      /* handled by JS toggling .checked on .radio-chip */
+    }
+    .radio-chip.checked {
+      border-color: var(--accent);
+      background: var(--accent-lt);
+      color: var(--accent);
+      font-weight: 500;
+    }
+
+    /* STATUS TOGGLE */
+    .toggle-wrap {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+    .toggle-btn {
+      position: relative;
+      width: 44px; height: 24px;
+      background: var(--border-med);
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: background var(--transition);
+    }
+    .toggle-btn::after {
+      content: '';
+      position: absolute;
+      width: 18px; height: 18px;
+      background: #fff;
+      border-radius: 50%;
+      top: 3px; left: 3px;
+      transition: transform var(--transition);
+      box-shadow: var(--shadow-xs);
+    }
+    .toggle-btn.on { background: var(--accent); }
+    .toggle-btn.on::after { transform: translateX(20px); }
+    .toggle-label { font-size: .85rem; color: var(--text-body); }
+
+    /* FORM ACTIONS */
+    .form-actions {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ═══════════════════════════════════════════════
+       BOTÕES
+    ═══════════════════════════════════════════════ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .6rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: .875rem;
+      font-weight: 500;
+      border: 1px solid transparent;
+      transition: all var(--transition);
+      white-space: nowrap;
+    }
+    .btn svg { flex-shrink: 0; }
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+    .btn-primary:hover { background: var(--sage-700); border-color: var(--sage-700); }
+    .btn-primary:active { transform: scale(.98); }
+
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text-body);
+      border-color: var(--border-med);
+    }
+    .btn-secondary:hover { background: var(--surface-2); border-color: var(--sand-400); color: var(--text-h); }
+
+    .btn-danger {
+      background: var(--surface);
+      color: var(--danger-600);
+      border-color: var(--danger-200);
+    }
+    .btn-danger:hover { background: var(--danger-50); }
+
+    .btn-ghost {
+      background: none;
+      border-color: transparent;
+      color: var(--text-muted);
+      padding-left: .5rem;
+      padding-right: .5rem;
+    }
+    .btn-ghost:hover { background: var(--surface-2); color: var(--text-h); }
+
+    .btn-sm {
+      padding: .4rem .875rem;
+      font-size: .8rem;
+      gap: .35rem;
+    }
+    .btn-icon {
+      padding: .5rem;
+      aspect-ratio: 1;
+    }
+
+    /* ═══════════════════════════════════════════════
+       TOAST / NOTIFICAÇÃO
+    ═══════════════════════════════════════════════ */
+    .toast-area {
+      position: fixed;
+      bottom: 2rem;
+      right: 2rem;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .toast {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      background: var(--sand-900);
+      color: var(--sand-50);
+      padding: .75rem 1.25rem;
+      border-radius: var(--radius-md);
+      font-size: .85rem;
+      box-shadow: var(--shadow-md);
+      animation: toast-in .3s ease both;
+      max-width: 340px;
+    }
+    .toast.success .toast-dot { background: #5cad72; }
+    .toast.error   .toast-dot { background: #e05555; }
+    .toast-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    @keyframes toast-in {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ═══════════════════════════════════════════════
+       TABELA DE CLIENTES
+    ═══════════════════════════════════════════════ */
+    .table-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      gap: 1rem;
+    }
+    .table-search {
+      position: relative;
+      flex: 1;
+      max-width: 320px;
+    }
+    .table-search input {
+      width: 100%;
+      padding: .55rem .875rem .55rem 2.3rem;
+      background: var(--surface);
+      border: 1px solid var(--border-med);
+      border-radius: var(--radius-md);
+      font-size: .875rem;
+      color: var(--text-h);
+      outline: none;
+      transition: border-color var(--transition);
+    }
+    .table-search input:focus { border-color: var(--accent); }
+    .table-search svg {
+      position: absolute;
+      left: .75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      stroke: var(--text-hint);
+      pointer-events: none;
+    }
+    .table-count {
+      font-size: .8rem;
+      color: var(--text-muted);
+    }
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-xs);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .84rem;
+    }
+    thead th {
+      background: var(--surface-2);
+      padding: .75rem 1rem;
+      text-align: left;
+      font-size: .72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background var(--transition);
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-2); }
+    tbody td {
+      padding: .75rem 1rem;
+      color: var(--text-body);
+      vertical-align: middle;
+    }
+    .td-name { font-weight: 500; color: var(--text-h); }
+    .td-id {
+      font-size: .78rem;
+      color: var(--text-hint);
+      font-variant-numeric: tabular-nums;
+    }
+    .badge-status {
+      display: inline-flex;
+      align-items: center;
+      gap: .3rem;
+      padding: .2rem .6rem;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 500;
+    }
+    .badge-status.ativo {
+      background: var(--sage-50);
+      color: var(--sage-600);
+    }
+    .badge-status.inativo {
+      background: var(--sand-100);
+      color: var(--sand-500);
+    }
+    .badge-status::before {
+      content: '';
+      width: 5px; height: 5px;
+      border-radius: 50%;
+      background: currentColor;
+    }
+    .table-actions {
+      display: flex;
+      gap: .25rem;
+      justify-content: flex-end;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--text-hint);
+    }
+    .empty-state svg {
+      margin: 0 auto 1rem;
+      display: block;
+      stroke: var(--sand-300);
+    }
+    .empty-state p { font-size: .9rem; }
+
+    /* ═══════════════════════════════════════════════
+       MODAL / DRAWER PARA EDIÇÃO / CONSULTA
+    ═══════════════════════════════════════════════ */
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,25,23,.45);
+      backdrop-filter: blur(4px);
+      z-index: 300;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-backdrop.open { display: flex; animation: fade-in .2s ease; }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .modal {
+      background: var(--surface);
+      width: 100%;
+      max-width: 680px;
+      max-height: 88vh;
+      border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+      overflow-y: auto;
+      animation: slide-up .3s cubic-bezier(.4,0,.2,1) both;
+    }
+    @keyframes slide-up {
+      from { transform: translateY(40px); opacity: 0; }
+      to   { transform: translateY(0); opacity: 1; }
+    }
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.5rem 2rem 1rem;
+      position: sticky;
+      top: 0;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      z-index: 10;
+    }
+    .modal-title {
+      font-family: var(--font-serif);
+      font-size: 1.2rem;
+      color: var(--text-h);
+      font-weight: 400;
+    }
+    .modal-body {
+      padding: 1.5rem 2rem 2rem;
+    }
+
+    /* ═══════════════════════════════════════════════
+       PERFIL (consulta por ID)
+    ═══════════════════════════════════════════════ */
+    .profile-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      box-shadow: var(--shadow-sm);
+    }
+    .profile-banner {
+      height: 80px;
+      background: linear-gradient(135deg, var(--sage-50) 0%, var(--sand-200) 100%);
+      position: relative;
+    }
+    .profile-avatar {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      background: var(--sage-200);
+      border: 3px solid var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: font-size;
+      position: absolute;
+      bottom: -32px;
+      left: 2rem;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      color: var(--sage-700);
+    }
+    .profile-body {
+      padding: 2.5rem 2rem 1.5rem;
+    }
+    .profile-name {
+      font-family: var(--font-serif);
+      font-size: 1.4rem;
+      color: var(--text-h);
+      font-weight: 400;
+    }
+    .profile-meta {
+      font-size: .82rem;
+      color: var(--text-muted);
+      margin-top: .2rem;
+    }
+    .profile-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .profile-field {
+      display: flex;
+      flex-direction: column;
+      gap: .2rem;
+    }
+    .profile-field-label {
+      font-size: .72rem;
+      color: var(--text-hint);
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      font-weight: 500;
+    }
+    .profile-field-value {
+      font-size: .88rem;
+      color: var(--text-body);
+    }
+    .profile-field-value.empty { color: var(--text-hint); font-style: italic; }
+
+    /* ═══════════════════════════════════════════════
+       CONSULTA POR ID — BUSCA
+    ═══════════════════════════════════════════════ */
+    .id-search-bar {
+      display: flex;
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .id-search-bar .input { flex: 1; }
+
+    /* ═══════════════════════════════════════════════
+       DELETAR — CONFIRMAÇÃO
+    ═══════════════════════════════════════════════ */
+    .delete-zone {
+      background: var(--danger-50);
+      border: 1px solid var(--danger-200);
+      border-radius: var(--radius-md);
+      padding: 1.25rem 1.5rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    .delete-zone.visible { display: block; }
+    .delete-zone p {
+      font-size: .875rem;
+      color: var(--danger-600);
+      margin-bottom: 1rem;
+    }
+
+    /* ═══════════════════════════════════════════════
+       RESPONSIVO
+    ═══════════════════════════════════════════════ */
+    @media (max-width: 768px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .main { padding: 1.5rem 1rem; }
+      .form-grid { grid-template-columns: 1fr; }
+      .profile-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 480px) {
+      .table-toolbar { flex-direction: column; align-items: stretch; }
+      .table-search { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══ NAVBAR ═══ -->
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <div class="brand-mark">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      </div>
+      <div>
+        <div class="brand-name">Client<span>Manager</span></div>
+      </div>
+    </div>
+    <div class="navbar-meta">
+      <div class="db-pill">
+        <div class="db-pill-dot"></div>
+      · Hi, Sr.Toledo! ·
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ LAYOUT PRINCIPAL ═══ -->
+  <div class="layout">
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Gerenciamento</div>
+        <button class="nav-item active" onclick="showView('cadastrar')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Cadastrar Cliente
+        </button>
+        <button class="nav-item" onclick="showView('listar')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          Consultar Todos
+        </button>
+        <button class="nav-item" onclick="showView('consultar')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          Consultar por ID
+        </button>
+        <button class="nav-item" onclick="showView('atualizar')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          Atualizar Cliente
+        </button>
+        <button class="nav-item" onclick="showView('deletar')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg>
+          Deletar Cliente
+        </button>
+      </div>
+
+      <div class="sidebar-divider"></div>
+
+      <div class="sidebar-info">
+        <div class="db-card">
+          <div class="db-card-title">Geral</div>
+          <div class="db-card-row"><span>Registros</span><span id="sidebar-count">—</span></div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─── MAIN ─── -->
+    <main class="main">
+
+      <!-- ══ VIEW: CADASTRAR ══ -->
+      <section class="view active" id="view-cadastrar">
+        <div class="page-header">
+          <div class="page-eyebrow">Inserção de dados</div>
+          <h1 class="page-title">Cadastrar Cliente</h1>
+          <p class="page-desc">Preencha os campos abaixo para registrar um novo cliente.</p>
+        </div>
+
+        <div class="form-card">
+          <form id="form-cadastrar" onsubmit="handleCadastrar(event)">
+            <div class="form-grid">
+
+              <!-- NOME -->
+              <div class="field full">
+                <label class="field-label field-required" for="cad-nome">Nome completo</label>
+                <div class="input-icon-wrap">
+                  <svg class="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                  <input class="input" type="text" id="cad-nome" name="nome" placeholder="ex.: Maria Aparecida da Silva" required maxlength="100" />
+                </div>
+              </div>
+
+              <!-- CPF -->
+              <div class="field">
+                <label class="field-label field-required" for="cad-cpf">CPF</label>
+                <div class="input-icon-wrap">
+                  <svg class="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                  <input class="input" type="text" id="cad-cpf" name="cpf" placeholder="000.000.000-00" maxlength="14" required />
+                </div>
+                <span class="field-hint">Somente números, sem formatação especial.</span>
+              </div>
+
+              <!-- DATA DE NASCIMENTO -->
+              <div class="field">
+                <label class="field-label field-required" for="cad-dtnasc">Data de nascimento</label>
+                <input class="input" type="date" id="cad-dtnasc" name="dtnasc" required />
+              </div>
+
+              <!-- EMAIL -->
+              <div class="field">
+                <label class="field-label" for="cad-email">E-mail</label>
+                <div class="input-icon-wrap">
+                  <svg class="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                  <input class="input" type="email" id="cad-email" name="email" placeholder="exemplo@dominio.com.br" maxlength="100" />
+                </div>
+              </div>
+
+              <!-- TELEFONE -->
+              <div class="field">
+                <label class="field-label" for="cad-tel">Telefone</label>
+                <div class="input-icon-wrap">
+                  <svg class="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.36 2 2 0 0 1 3.6 1h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9a16 16 0 0 0 6.17 6.17l.82-.82a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <input class="input" type="tel" id="cad-tel" name="tel" placeholder="(11) 9 0000-0000" maxlength="20" />
+                </div>
+              </div>
+
+              <!-- ENDEREÇO -->
+              <div class="field full">
+                <label class="field-label" for="cad-ende">Endereço</label>
+                <div class="input-icon-wrap">
+                  <svg class="icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13S3 17 3 10a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <input class="input" type="text" id="cad-ende" name="ende" placeholder="Rua, número, bairro, cidade" maxlength="200" />
+                </div>
+              </div>
+
+              <!-- SEXO -->
+              <div class="field">
+                <label class="field-label">Sexo</label>
+                <div class="radio-group" id="radio-sexo">
+                  <label class="radio-chip" onclick="toggleChip(this,'radio-sexo')">
+                    <input type="radio" name="sexo" value="Masculino" />
+                    <span>Masculino</span>
+                  </label>
+                  <label class="radio-chip" onclick="toggleChip(this,'radio-sexo')">
+                    <input type="radio" name="sexo" value="Feminino" />
+                    <span>Feminino</span>
+                  </label>
+                  <label class="radio-chip" onclick="toggleChip(this,'radio-sexo')">
+                    <input type="radio" name="sexo" value="Outro" />
+                    <span>Outro</span>
+                  </label>
+                  <label class="radio-chip" onclick="toggleChip(this,'radio-sexo')">
+                    <input type="radio" name="sexo" value="Prefiro não informar" />
+                    <span>Prefiro não informar</span>
+                  </label>
+                </div>
+              </div>
+
+              <!-- ESTADO CIVIL -->
+              <div class="field">
+                <label class="field-label" for="cad-estcivil">Estado civil</label>
+                <select class="select" id="cad-estcivil" name="estcivil">
+                  <option value="">Selecione</option>
+                  <option value="Solteiro(a)">Solteiro(a)</option>
+                  <option value="Casado(a)">Casado(a)</option>
+                  <option value="Divorciado(a)">Divorciado(a)</option>
+                  <option value="Viúvo(a)">Viúvo(a)</option>
+                  <option value="União estável">União estável</option>
+                  <option value="Separado(a)">Separado(a)</option>
+                </select>
+              </div>
+
+              <!-- STATUS -->
+              <div class="field">
+                <label class="field-label">Status do cadastro</label>
+                <div class="toggle-wrap">
+                  <button type="button" class="toggle-btn on" id="toggle-status-cad" onclick="toggleStatus(this)"></button>
+                  <span class="toggle-label" id="toggle-label-cad">Ativo</span>
+                </div>
+                <input type="hidden" name="status" id="cad-status" value="Ativo" />
+                <span class="field-hint">Define se o cliente está ativo no sistema.</span>
+              </div>
+
+            </div>
+
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Salvar cadastro
+              </button>
+              <button type="reset" class="btn btn-secondary" onclick="resetForm('form-cadastrar')">
+                Limpar campos
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ══ VIEW: LISTAR TODOS ══ -->
+      <section class="view" id="view-listar">
+        <div class="page-header">
+          <div class="page-eyebrow">Consulta geral</div>
+          <h1 class="page-title">Todos os Clientes</h1>
+          <p class="page-desc">Visualize, filtre e gerencie todos os registros de Clientes <code>cliente</code>.</p>
+        </div>
+
+        <div class="table-toolbar">
+          <div class="table-search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="search-input" placeholder="Buscar por nome, CPF ou e-mail…" oninput="filterTable()" />
+          </div>
+          <span class="table-count" id="table-count">— registros</span>
+        </div>
+
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>CPF</th>
+                <th>E-mail</th>
+                <th>Telefone</th>
+                <th>Status</th>
+                <th style="width:80px;"></th>
+              </tr>
+            </thead>
+            <tbody id="table-body">
+              <!-- Populado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ══ VIEW: CONSULTAR POR ID ══ -->
+      <section class="view" id="view-consultar">
+        <div class="page-header">
+          <div class="page-eyebrow">Busca individual</div>
+          <h1 class="page-title">Consultar por ID</h1>
+          <p class="page-desc">Informe o identificador único do cliente para exibir seu perfil completo.</p>
+        </div>
+
+        <div class="id-search-bar">
+          <input class="input" type="number" id="busca-id" placeholder="Digite o ID (ex.: 1, 2, 3…)" min="1" />
+          <button class="btn btn-primary" onclick="consultarPorId()">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            Buscar
+          </button>
+        </div>
+
+        <div id="perfil-resultado"></div>
+      </section>
+
+      <!-- ══ VIEW: ATUALIZAR ══ -->
+      <section class="view" id="view-atualizar">
+        <div class="page-header">
+          <div class="page-eyebrow">Atualização de dados</div>
+          <h1 class="page-title">Atualizar Cliente</h1>
+          <p class="page-desc">Informe o ID do cliente, carregue os dados e faça as alterações desejadas.</p>
+        </div>
+
+        <!-- Passo 1: buscar por ID -->
+        <div class="form-card" style="margin-bottom:1.5rem;">
+          <div class="field">
+            <label class="field-label field-required" for="upd-id">ID do cliente</label>
+            <div style="display:flex;gap:.75rem;">
+              <input class="input" type="number" id="upd-id" placeholder="ex.: 1" min="1" style="max-width:200px;" />
+              <button class="btn btn-secondary" onclick="carregarParaEditar()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Carregar dados
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Passo 2: formulário de edição (aparece após busca) -->
+        <div class="form-card" id="form-atualizar-wrap" style="display:none;">
+          <form id="form-atualizar" onsubmit="handleAtualizar(event)">
+            <div class="form-grid">
+              <div class="field full">
+                <label class="field-label field-required" for="upd-nome">Nome completo</label>
+                <input class="input" type="text" id="upd-nome" name="nome" maxlength="100" required />
+              </div>
+              <div class="field">
+                <label class="field-label" for="upd-email">E-mail</label>
+                <input class="input" type="email" id="upd-email" name="email" maxlength="100" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="upd-tel">Telefone</label>
+                <input class="input" type="tel" id="upd-tel" name="tel" maxlength="20" />
+              </div>
+              <div class="field full">
+                <label class="field-label" for="upd-ende">Endereço</label>
+                <input class="input" type="text" id="upd-ende" name="ende" maxlength="200" />
+              </div>
+              <div class="field">
+                <label class="field-label" for="upd-estcivil">Estado civil</label>
+                <select class="select" id="upd-estcivil" name="estcivil">
+                  <option value="">Selecione</option>
+                  <option value="Solteiro(a)">Solteiro(a)</option>
+                  <option value="Casado(a)">Casado(a)</option>
+                  <option value="Divorciado(a)">Divorciado(a)</option>
+                  <option value="Viúvo(a)">Viúvo(a)</option>
+                  <option value="União estável">União estável</option>
+                  <option value="Separado(a)">Separado(a)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button type="submit" class="btn btn-primary">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Salvar alterações
+              </button>
+              <button type="button" class="btn btn-secondary" onclick="document.getElementById('form-atualizar-wrap').style.display='none'">Cancelar</button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- ══ VIEW: DELETAR ══ -->
+      <section class="view" id="view-deletar">
+        <div class="page-header">
+          <div class="page-eyebrow">Remoção de dados</div>
+          <h1 class="page-title">Deletar Cliente</h1>
+          <p class="page-desc">Informe o ID do cliente que deseja remover permanentemente do sistema.</p>
+        </div>
+
+        <div class="form-card">
+          <div class="field">
+            <label class="field-label field-required" for="del-id">ID do cliente a deletar</label>
+            <div style="display:flex;gap:.75rem;">
+              <input class="input" type="number" id="del-id" placeholder="ex.: 1" min="1" style="max-width:200px;" />
+              <button class="btn btn-secondary" onclick="carregarParaDeletar()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                Verificar
+              </button>
+            </div>
+          </div>
+
+          <div class="delete-zone" id="delete-zone">
+            <p id="delete-confirm-text">Você está prestes a deletar o cliente <strong></strong>. Esta ação é irreversível.</p>
+            <div style="display:flex;gap:.75rem;">
+              <button class="btn btn-danger" onclick="handleDeletar()">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                Confirmar exclusão
+              </button>
+              <button class="btn btn-secondary" onclick="document.getElementById('delete-zone').classList.remove('visible')">Cancelar</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ═══ MODAL DE EDIÇÃO (acionado pela tabela) ═══ -->
+  <div class="modal-backdrop" id="modal-edit" onclick="closeModal(event)">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Editar Cliente</span>
+        <button class="btn btn-ghost btn-icon" onclick="closeModalForce()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="form-modal-edit" onsubmit="handleModalEdit(event)">
+          <input type="hidden" id="modal-edit-id" />
+          <div class="form-grid">
+            <div class="field full">
+              <label class="field-label field-required" for="modal-nome">Nome</label>
+              <input class="input" type="text" id="modal-nome" required maxlength="100" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="modal-email">E-mail</label>
+              <input class="input" type="email" id="modal-email" maxlength="100" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="modal-tel">Telefone</label>
+              <input class="input" type="tel" id="modal-tel" maxlength="20" />
+            </div>
+            <div class="field full">
+              <label class="field-label" for="modal-ende">Endereço</label>
+              <input class="input" type="text" id="modal-ende" maxlength="200" />
+            </div>
+            <div class="field">
+              <label class="field-label" for="modal-estcivil">Estado civil</label>
+              <select class="select" id="modal-estcivil">
+                <option value="">Selecione</option>
+                <option>Solteiro(a)</option>
+                <option>Casado(a)</option>
+                <option>Divorciado(a)</option>
+                <option>Viúvo(a)</option>
+                <option>União estável</option>
+                <option>Separado(a)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Salvar alterações</button>
+            <button type="button" class="btn btn-secondary" onclick="closeModalForce()">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TOAST AREA ═══ -->
+  <div class="toast-area" id="toast-area"></div>
+
+  <!-- ═══════════════════════════════════════════════
+       JAVASCRIPT — LÓGICA DE INTERFACE
+       (Simula as operações que o DAO Java faria
+        via conexão ao MySQL/XAMPP em produção)
+  ═══════════════════════════════════════════════ -->
+  <script>
+    /* ─── Estado local (simula a tabela cliente) ─── */
+    let clientes = [
+      { id: 1, nome: 'Ana Paula Souza', cpf: '123.456.789-00', email: 'ana@email.com', tel: '(11) 9 8765-4321', ende: 'Rua das Flores, 100 — São Paulo/SP', dtnasc: '1992-03-15', sexo: 'Feminino', estcivil: 'Solteiro(a)', status: 'Ativo' },
+      { id: 2, nome: 'Carlos Eduardo Lima', cpf: '987.654.321-00', email: 'carlos@email.com', tel: '(11) 9 1234-5678', ende: 'Av. Paulista, 500 — São Paulo/SP', dtnasc: '1985-07-22', sexo: 'Masculino', estcivil: 'Casado(a)', status: 'Ativo' },
+      { id: 3, nome: 'Mariana Oliveira', cpf: '456.789.123-00', email: 'mariana@email.com', tel: '(11) 9 5555-9999', ende: 'Rua Augusta, 200 — São Paulo/SP', dtnasc: '2001-11-03', sexo: 'Feminino', estcivil: 'Solteiro(a)', status: 'Inativo' },
+    ];
+    let nextId = 4;
+    let clienteParaDeletar = null;
+
+    /* ─── Navegação entre views ─── */
+    function showView(name) {
+      document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      document.getElementById('view-' + name).classList.add('active');
+      event.currentTarget.classList.add('active');
+      if (name === 'listar') renderTable(clientes);
+    }
+
+    /* ─── Máscaras de CPF ─── */
+    document.getElementById('cad-cpf').addEventListener('input', function () {
+      let v = this.value.replace(/\D/g, '').slice(0, 11);
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d)/, '$1.$2');
+      v = v.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+      this.value = v;
+    });
+
+    /* ─── Chips de rádio (sexo) ─── */
+    function toggleChip(el, groupId) {
+      document.querySelectorAll(`#${groupId} .radio-chip`).forEach(c => c.classList.remove('checked'));
+      el.classList.add('checked');
+    }
+
+    /* ─── Toggle de status ─── */
+    function toggleStatus(btn) {
+      btn.classList.toggle('on');
+      const isOn = btn.classList.contains('on');
+      document.getElementById('toggle-label-cad').textContent = isOn ? 'Ativo' : 'Inativo';
+      document.getElementById('cad-status').value = isOn ? 'Ativo' : 'Inativo';
+    }
+
+    /* ─── Toast ─── */
+    function toast(msg, type = 'success') {
+      const area = document.getElementById('toast-area');
+      const el = document.createElement('div');
+      el.className = `toast ${type}`;
+      el.innerHTML = `<div class="toast-dot"></div><span>${msg}</span>`;
+      area.appendChild(el);
+      setTimeout(() => el.remove(), 3500);
+    }
+
+    /* ─── CRUD: Cadastrar ─── */
+    function handleCadastrar(e) {
+      e.preventDefault();
+      const fd = new FormData(e.target);
+      const sexoChecked = document.querySelector('#radio-sexo .radio-chip.checked input');
+      const obj = {
+        id: nextId++,
+        nome: fd.get('nome'),
+        cpf: fd.get('cpf'),
+        email: fd.get('email') || '',
+        tel: fd.get('tel') || '',
+        ende: fd.get('ende') || '',
+        dtnasc: fd.get('dtnasc'),
+        sexo: sexoChecked ? sexoChecked.value : '',
+        estcivil: fd.get('estcivil') || '',
+        status: fd.get('status') || 'Ativo',
+      };
+      clientes.push(obj);
+      updateSidebarCount();
+      toast(`Cliente <strong>${obj.nome}</strong> cadastrado com sucesso! (ID: ${obj.id})`);
+      e.target.reset();
+      document.querySelectorAll('.radio-chip').forEach(c => c.classList.remove('checked'));
+      document.getElementById('toggle-btn').classList.add('on');
+    }
+
+    /* ─── CRUD: Listar / Renderizar tabela ─── */
+    function renderTable(data) {
+      const tbody = document.getElementById('table-body');
+      document.getElementById('table-count').textContent = `${data.length} registro${data.length !== 1 ? 's' : ''}`;
+      if (!data.length) {
+        tbody.innerHTML = `<tr><td colspan="7"><div class="empty-state">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <p>Nenhum cliente encontrado.</p></div></td></tr>`;
+        return;
+      }
+      tbody.innerHTML = data.map(c => `
+        <tr>
+          <td class="td-id">#${c.id}</td>
+          <td class="td-name">${esc(c.nome)}</td>
+          <td>${esc(c.cpf)}</td>
+          <td>${esc(c.email) || '<span style="color:var(--text-hint)">—</span>'}</td>
+          <td>${esc(c.tel) || '<span style="color:var(--text-hint)">—</span>'}</td>
+          <td><span class="badge-status ${c.status === 'Ativo' ? 'ativo' : 'inativo'}">${c.status}</span></td>
+          <td class="table-actions">
+            <button class="btn btn-ghost btn-icon btn-sm" title="Editar" onclick="abrirModalEdit(${c.id})">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            </button>
+            <button class="btn btn-ghost btn-icon btn-sm" title="Deletar" style="color:var(--danger-600)" onclick="deletarDireto(${c.id})">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+            </button>
+          </td>
+        </tr>`).join('');
+    }
+
+    function filterTable() {
+      const q = document.getElementById('search-input').value.toLowerCase();
+      const filtered = clientes.filter(c =>
+        c.nome.toLowerCase().includes(q) ||
+        c.cpf.includes(q) ||
+        c.email.toLowerCase().includes(q)
+      );
+      renderTable(filtered);
+    }
+
+    /* ─── CRUD: Consultar por ID ─── */
+    function consultarPorId() {
+      const id = parseInt(document.getElementById('busca-id').value);
+      const c = clientes.find(x => x.id === id);
+      const div = document.getElementById('perfil-resultado');
+      if (!c) {
+        div.innerHTML = `<div class="form-card" style="color:var(--clay-500);text-align:center;padding:2rem;">
+          Nenhum cliente com ID <strong>${id}</strong> encontrado.</div>`;
+        return;
+      }
+      const iniciais = c.nome.split(' ').slice(0, 2).map(p => p[0]).join('').toUpperCase();
+      div.innerHTML = `
+        <div class="profile-card">
+          <div class="profile-banner"></div>
+          <div class="profile-body">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;">
+              <div>
+                <div class="profile-avatar" style="position:relative;bottom:0;left:0;margin-bottom:.5rem;width:52px;height:52px;font-size:1.1rem;">${iniciais}</div>
+                <div class="profile-name">${esc(c.nome)}</div>
+                <div class="profile-meta">ID #${c.id} · <span class="badge-status ${c.status === 'Ativo' ? 'ativo' : 'inativo'}" style="font-size:.72rem;">${c.status}</span></div>
+              </div>
+            </div>
+            <div class="profile-grid">
+              <div class="profile-field"><span class="profile-field-label">CPF</span><span class="profile-field-value">${esc(c.cpf)}</span></div>
+              <div class="profile-field"><span class="profile-field-label">Data de nascimento</span><span class="profile-field-value">${formatDate(c.dtnasc)}</span></div>
+              <div class="profile-field"><span class="profile-field-label">E-mail</span><span class="profile-field-value ${!c.email ? 'empty' : ''}">${c.email || 'Não informado'}</span></div>
+              <div class="profile-field"><span class="profile-field-label">Telefone</span><span class="profile-field-value ${!c.tel ? 'empty' : ''}">${c.tel || 'Não informado'}</span></div>
+              <div class="profile-field"><span class="profile-field-label">Sexo</span><span class="profile-field-value ${!c.sexo ? 'empty' : ''}">${c.sexo || 'Não informado'}</span></div>
+              <div class="profile-field"><span class="profile-field-label">Estado civil</span><span class="profile-field-value ${!c.estcivil ? 'empty' : ''}">${c.estcivil || 'Não informado'}</span></div>
+              <div class="profile-field" style="grid-column:1/-1;"><span class="profile-field-label">Endereço</span><span class="profile-field-value ${!c.ende ? 'empty' : ''}">${c.ende || 'Não informado'}</span></div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    /* ─── CRUD: Atualizar ─── */
+    function carregarParaEditar() {
+      const id = parseInt(document.getElementById('upd-id').value);
+      const c = clientes.find(x => x.id === id);
+      if (!c) { toast('Cliente não encontrado.', 'error'); return; }
+      document.getElementById('upd-nome').value    = c.nome;
+      document.getElementById('upd-email').value   = c.email;
+      document.getElementById('upd-tel').value     = c.tel;
+      document.getElementById('upd-ende').value    = c.ende;
+      document.getElementById('upd-estcivil').value= c.estcivil;
+      document.getElementById('form-atualizar-wrap').style.display = 'block';
+    }
+    function handleAtualizar(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('upd-id').value);
+      const idx = clientes.findIndex(x => x.id === id);
+      if (idx === -1) { toast('Cliente não encontrado.', 'error'); return; }
+      clientes[idx].nome    = document.getElementById('upd-nome').value;
+      clientes[idx].email   = document.getElementById('upd-email').value;
+      clientes[idx].tel     = document.getElementById('upd-tel').value;
+      clientes[idx].ende    = document.getElementById('upd-ende').value;
+      clientes[idx].estcivil= document.getElementById('upd-estcivil').value;
+      toast(`Dados de <strong>${clientes[idx].nome}</strong> atualizados.`);
+      document.getElementById('form-atualizar-wrap').style.display = 'none';
+    }
+
+    /* ─── CRUD: Deletar ─── */
+    function carregarParaDeletar() {
+      const id = parseInt(document.getElementById('del-id').value);
+      const c = clientes.find(x => x.id === id);
+      if (!c) { toast('Cliente não encontrado.', 'error'); return; }
+      clienteParaDeletar = c;
+      document.getElementById('delete-confirm-text').innerHTML =
+        `Você está prestes a deletar <strong>${esc(c.nome)}</strong> (ID #${c.id}). Esta ação é irreversível.`;
+      document.getElementById('delete-zone').classList.add('visible');
+    }
+    function handleDeletar() {
+      if (!clienteParaDeletar) return;
+      clientes = clientes.filter(x => x.id !== clienteParaDeletar.id);
+      toast(`Cliente <strong>${clienteParaDeletar.nome}</strong> removido.`, 'error');
+      clienteParaDeletar = null;
+      document.getElementById('delete-zone').classList.remove('visible');
+      document.getElementById('del-id').value = '';
+      updateSidebarCount();
+    }
+    function deletarDireto(id) {
+      const c = clientes.find(x => x.id === id);
+      if (!c) return;
+      if (!confirm(`Confirmar exclusão de "${c.nome}"?`)) return;
+      clientes = clientes.filter(x => x.id !== id);
+      renderTable(clientes);
+      updateSidebarCount();
+      toast(`Cliente <strong>${c.nome}</strong> removido.`, 'error');
+    }
+
+    /* ─── Modal de edição rápida ─── */
+    function abrirModalEdit(id) {
+      const c = clientes.find(x => x.id === id);
+      if (!c) return;
+      document.getElementById('modal-edit-id').value   = id;
+      document.getElementById('modal-nome').value      = c.nome;
+      document.getElementById('modal-email').value     = c.email;
+      document.getElementById('modal-tel').value       = c.tel;
+      document.getElementById('modal-ende').value      = c.ende;
+      document.getElementById('modal-estcivil').value  = c.estcivil;
+      document.getElementById('modal-edit').classList.add('open');
+    }
+    function closeModal(e) {
+      if (e.target === document.getElementById('modal-edit')) closeModalForce();
+    }
+    function closeModalForce() {
+      document.getElementById('modal-edit').classList.remove('open');
+    }
+    function handleModalEdit(e) {
+      e.preventDefault();
+      const id = parseInt(document.getElementById('modal-edit-id').value);
+      const idx = clientes.findIndex(x => x.id === id);
+      if (idx === -1) return;
+      clientes[idx].nome    = document.getElementById('modal-nome').value;
+      clientes[idx].email   = document.getElementById('modal-email').value;
+      clientes[idx].tel     = document.getElementById('modal-tel').value;
+      clientes[idx].ende    = document.getElementById('modal-ende').value;
+      clientes[idx].estcivil= document.getElementById('modal-estcivil').value;
+      closeModalForce();
+      renderTable(clientes);
+      toast(`Dados de <strong>${clientes[idx].nome}</strong> atualizados.`);
+    }
+
+    /* ─── Utilitários ─── */
+    function esc(s) {
+      return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function formatDate(d) {
+      if (!d) return 'Não informado';
+      const [y, m, day] = d.split('-');
+      return `${day}/${m}/${y}`;
+    }
+    function resetForm(id) {
+      document.getElementById(id).reset();
+      document.querySelectorAll('.radio-chip').forEach(c => c.classList.remove('checked'));
+    }
+    function updateSidebarCount() {
+      document.getElementById('sidebar-count').textContent = clientes.length;
+    }
+
+    /* ─── Inicialização ─── */
+    updateSidebarCount();
+  </script>
+</body>
+</html>
